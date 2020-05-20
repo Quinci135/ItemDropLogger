@@ -178,8 +178,7 @@ namespace ItemDropLog
 						{
 							Item itemById = TShock.Utils.GetItemById(num6);
 							string name = tSPlayer.Name;
-                            //int heldItem = tSPlayer.TPlayer.inventory[58].netID;
-                            //bool notUsingExtractinator = !(heldItem == 1103 || heldItem == 424 || heldItem == 3347);
+
                             string sourceIP = tSPlayer.IP.Split(new char[]
 							{
 								':'
@@ -188,8 +187,8 @@ namespace ItemDropLog
 							{
 								float dropX = num2 / 16f;
 								float dropY = num3 / 16f;
-								this._playerDropsPending.Add(new ItemDrop(name, itemById.netID, num4, num5, dropX, dropY));
-								if (this.CheckItem(itemById))// && notUsingExtractinator)
+								this._playerDropsPending.Add(new ItemDrop(name, itemById.netID, num4, (int)num5, dropX, dropY));
+								if (this.CheckItem(itemById))
 								{
 									ItemDropLogger.CreateItemEntry(new ItemDropLogInfo("PlayerDrop", name, string.Empty, itemById.netID, num4, num5, dropX, dropY)
 									{
@@ -262,13 +261,13 @@ namespace ItemDropLog
 				args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /lr <player> [page] [item id/name]");
 				return;
 			}
-			string text = args.Parameters[0];
-            List<TSPlayer> list = TShock.Utils.FindPlayer(text);
-            TShockAPI.DB.User user = TShock.Users.GetUserByName(text);
+			string plr = args.Parameters[0];
+            List<TSPlayer> list = TShockAPI.TSPlayer.FindByNameOrID(plr);
+            TShockAPI.DB.UserAccount user = TShock.UserAccounts.GetUserAccountByName(plr);
             string text2;
 			if (list.Count == 0)
 			{
-                using (QueryResult queryResult = db.QueryReader("SELECT COUNT(*) AS `Count` FROM `ItemLog` WHERE `TargetPlayerName`=@0", text))
+                using (QueryResult queryResult = db.QueryReader("SELECT COUNT(*) AS `Count` FROM `ItemLog` WHERE `TargetPlayerName`=@0", plr))
 				{
 					if (!queryResult.Read() || queryResult.Get<int>("Count") <= 0)
 					{
@@ -276,7 +275,7 @@ namespace ItemDropLog
 						return;
 					}
 				}
-				text2 = text;
+				text2 = plr;
 			}
 
             if (list.Count <= 1)
@@ -285,7 +284,7 @@ namespace ItemDropLog
             }
 			else
 			{
-				TShock.Utils.SendMultipleMatchError(args.Player, from p in list select p.Name);
+				args.Player.SendMultipleMatchError( from p in list select p.Name);
 				return;
 			}
 			int num;
@@ -304,7 +303,7 @@ namespace ItemDropLog
 				}
 				if (itemByIdOrName.Count > 1)
 				{
-					TShock.Utils.SendMultipleMatchError(args.Player, from x in itemByIdOrName
+					args.Player.SendMultipleMatchError( from x in itemByIdOrName
 					select x.Name);
 					return;
 				}
@@ -333,17 +332,13 @@ namespace ItemDropLog
 					string text5 = queryResult2.Get<string>("TargetPlayerName");
 					string value = queryResult2.Get<string>("ItemName");
 					int num3 = queryResult2.Get<int>("ItemStack");
-					string text6 = queryResult2.Get<string>("ItemPrefix");
+					int text6 = queryResult2.Get<int>("ItemPrefix");
 					StringBuilder stringBuilder = new StringBuilder();
 					stringBuilder.Append(num3).Append(' ');
-					if (text6 != "None")
+					if (text6 != 0)
 					{
-						stringBuilder.Append(text6).Append(' ');
+						stringBuilder.Append(GetPrefixName(text6)).Append(' ');
 					}
-                    else
-                    {
-                        text6 = "";
-                    }
 					stringBuilder.Append(value); 
 					if (itemById.maxStack > 1)
 					{
@@ -369,8 +364,8 @@ namespace ItemDropLog
 				return;
 			}
 			string text = args.Parameters[0];
-			List<TSPlayer> list = TShock.Utils.FindPlayer(text);
-            TShockAPI.DB.User user = TShock.Users.GetUserByName(text);
+			List<TSPlayer> list = TShockAPI.TSPlayer.FindByNameOrID(text);
+            TShockAPI.DB.UserAccount user = TShock.UserAccounts.GetUserAccountByName(text);
             string text2;
 			if (list.Count == 0)
 			{
@@ -390,7 +385,7 @@ namespace ItemDropLog
 			}
 			else
 			{
-				TShock.Utils.SendMultipleMatchError(args.Player, from p in list select p.Name);
+				args.Player.SendMultipleMatchError( from p in list select p.Name);
 				return;
 			}
 			int num;
@@ -409,7 +404,7 @@ namespace ItemDropLog
 				}
 				if (itemByIdOrName.Count > 1)
 				{
-					TShock.Utils.SendMultipleMatchError(args.Player, from x in itemByIdOrName
+                    args.Player.SendMultipleMatchError( from x in itemByIdOrName
 					select x.Name);
 					return;
 				}
@@ -438,18 +433,14 @@ namespace ItemDropLog
 					string text5 = queryResult2.Get<string>("TargetPlayerName");
 					string value = queryResult2.Get<string>("ItemName");
 					int num3 = queryResult2.Get<int>("ItemStack");
-					string text6 = queryResult2.Get<string>("ItemPrefix");
+					int text6 = queryResult2.Get<int>("ItemPrefix");
 					StringBuilder stringBuilder = new StringBuilder();
 					stringBuilder.Append(num3).Append(' ');
 					//Prefix should be working
-					if (text6 != "None")
+					if (text6 != 0)
 					{
-						stringBuilder.Append(text6).Append(' ');
+						stringBuilder.Append(GetPrefixName(text6)).Append(' ');
 					}
-                    else
-                    {
-                        text6 = "";
-                    }
 					stringBuilder.Append(value);
 					if (itemById.maxStack > 1)
 					{

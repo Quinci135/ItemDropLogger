@@ -27,7 +27,7 @@ namespace ItemDropLog
 
 		public int ItemStack;
 
-		public string ItemPrefix;
+		public int ItemPrefix;
 
 		public float DropX;
 
@@ -58,16 +58,12 @@ namespace ItemDropLog
 			this.ItemNetId = itemNetId;
 			this.ItemName = string.Empty;
 			this.ItemStack = itemStack;
-			this.ItemPrefix = "None";
+			this.ItemPrefix = 0;
 			this.DropX = dropX;
 			this.DropY = dropY;
 			if (itemNetId != 0)
 			{
 				this.ItemName = this.GetItemName(itemNetId);
-				if (itemPrefix != 0)
-				{
-					this.ItemPrefix = this.GetPrefixName(itemPrefix);
-				}
 			}
 		}
 
@@ -79,16 +75,6 @@ namespace ItemDropLog
 				return itemById.Name;
 			}
 			return string.Empty;
-		}
-
-		private string GetPrefixName(int pre)
-		{
-			string result = "None";
-			if (pre > 0)
-			{
-				result = EnglishLanguage.GetPrefixById(pre);
-            }
-			return result;
 		}
 	}
 }
