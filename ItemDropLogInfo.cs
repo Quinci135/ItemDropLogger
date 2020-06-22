@@ -57,7 +57,11 @@ namespace ItemDropLog
 			this.ItemNetId = itemNetId;
 			this.ItemName = string.Empty;
 			this.ItemStack = itemStack;
+<<<<<<< Updated upstream
 			this.ItemPrefix = "None";
+=======
+			this.ItemPrefix = itemPrefix;
+>>>>>>> Stashed changes
 			this.DropX = dropX;
 			this.DropY = dropY;
 			if (itemNetId != 0)
