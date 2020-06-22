@@ -22,7 +22,7 @@ namespace ItemDropLog
 
 		private ItemDrop[] _drops;
 
-        private ItemDropLogger logger;
+        private ItemDropLogger logger = new ItemDropLogger();
 
 		private IList<ItemDrop> _playerDropsPending;
 
