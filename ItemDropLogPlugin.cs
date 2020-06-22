@@ -20,11 +20,9 @@ namespace ItemDropLog
 	{
 		private static readonly string ConfigPath = Path.Combine(TShock.SavePath, "itemdroplog.json");
 
-		private object _dropLocker;
-
 		private ItemDrop[] _drops;
 
-		private object _pendingLocker;
+        private ItemDropLogger logger;
 
 		private IList<ItemDrop> _playerDropsPending;
 
@@ -76,9 +74,7 @@ namespace ItemDropLog
 
 		public ItemDropLogPlugin(Main game) : base(game)
 		{
-			this._dropLocker = new object();
 			this._drops = new ItemDrop[Main.item.Length];
-			this._pendingLocker = new object();
 			this._playerDropsPending = new List<ItemDrop>(Main.item.Length);
 			this._ignoredItems = new List<Item>();
 		}
@@ -183,18 +179,15 @@ namespace ItemDropLog
 							{
 								':'
 							})[0];
-							lock (this._pendingLocker)
+							float dropX = num2 / 16f;
+							float dropY = num3 / 16f;
+							this._playerDropsPending.Add(new ItemDrop(name, itemById.netID, num4, (int)num5, dropX, dropY));
+							if (this.CheckItem(itemById))
 							{
-								float dropX = num2 / 16f;
-								float dropY = num3 / 16f;
-								this._playerDropsPending.Add(new ItemDrop(name, itemById.netID, num4, (int)num5, dropX, dropY));
-								if (this.CheckItem(itemById))
+								logger.CreateItemEntry(new ItemDropLogInfo("PlayerDrop", name, string.Empty, itemById.netID, num4, num5, dropX, dropY)
 								{
-									ItemDropLogger.CreateItemEntry(new ItemDropLogInfo("PlayerDrop", name, string.Empty, itemById.netID, num4, num5, dropX, dropY)
-									{
-										SourceIP = sourceIP
-									});
-								}
+									SourceIP = sourceIP
+								});
 							}
 						}
 						if (num < 400 && num6 == 0)
@@ -207,20 +200,17 @@ namespace ItemDropLog
 								{
 									':'
 								})[0];
-								lock (this._dropLocker)
+								ItemDrop itemDrop = this._drops[num];
+								if (this._drops[num] != null && this._drops[num].NetworkId != 0)
 								{
-									ItemDrop itemDrop = this._drops[num];
-									if (this._drops[num] != null && this._drops[num].NetworkId != 0)
+									if (this.CheckItem(item))
 									{
-										if (this.CheckItem(item))
+										logger.UpdateItemEntry(new ItemDropLogInfo("Pickup", itemDrop.SourceName, name2, itemDrop.NetworkId, itemDrop.Stack, (int)itemDrop.Prefix)
 										{
-											ItemDropLogger.UpdateItemEntry(new ItemDropLogInfo("Pickup", itemDrop.SourceName, name2, itemDrop.NetworkId, itemDrop.Stack, (int)itemDrop.Prefix)
-											{
-												TargetIP = targetIP
-											});
-										}
-										this._drops[num] = null;
+											TargetIP = targetIP
+										});
 									}
+									this._drops[num] = null;
 								}
 							}
 						}
@@ -242,14 +232,8 @@ namespace ItemDropLog
 				ItemDrop itemDrop = this._playerDropsPending.FirstOrDefault((ItemDrop x) => x.NetworkId == item.netID && x.Stack == item.stack && x.Prefix == item.prefix);
 				if (itemDrop != null)
 				{
-					lock (this._dropLocker)
-					{
-						this._drops[number] = itemDrop;
-					}
-					lock (this._pendingLocker)
-					{
-						this._playerDropsPending.Remove(itemDrop);
-					}
+					this._drops[number] = itemDrop;
+					this._playerDropsPending.Remove(itemDrop);
 				}
 			}
 		}

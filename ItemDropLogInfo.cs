@@ -58,7 +58,7 @@ namespace ItemDropLog
 			this.ItemNetId = itemNetId;
 			this.ItemName = string.Empty;
 			this.ItemStack = itemStack;
-			this.ItemPrefix = 0;
+			this.ItemPrefix = itemPrefix;
 			this.DropX = dropX;
 			this.DropY = dropY;
 			if (itemNetId != 0)
